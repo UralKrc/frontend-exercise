@@ -320,7 +320,11 @@ export default React.forwardRef<HTMLElement, MultiSelectFilterProps>(
               </Typography>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <Typography variant="caption" color="muted">
+                <Typography
+                  variant="caption"
+                  color="muted"
+                  className="whitespace-nowrap"
+                >
                   Auto-saved
                 </Typography>
               </div>

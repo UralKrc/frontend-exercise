@@ -116,6 +116,14 @@ All components include:
 
 ## Implementation Notes
 
+### Categorization Logic
+
+- Items are assigned to categories using a simple keyword-based confidence scoring system.
+- If an item matches multiple categories, the best (highest scoring) match is chosen.
+- If no good match is found, the item is placed in the "Other" category.
+- To add or adjust categories, update the keyword lists in `src/constants/categories.ts`.
+- This approach is easy to maintain and works well for the current dataset, but some ambiguous items may require future keyword tweaks.
+
 ### Performance Considerations
 
 - Debounced search input (300ms)

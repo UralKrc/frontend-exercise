@@ -3,7 +3,7 @@ import type { TagProps } from "./types";
 
 const variants = {
   primary: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  secondary: "bg-slate-700/20 text-slate-100 border-slate-700/30",
+  secondary: "bg-slate-700/20 text-slate-300 border-slate-700/30",
 };
 
 export default function Tag({

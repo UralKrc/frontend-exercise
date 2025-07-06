@@ -24,12 +24,28 @@ export function transformItemsData(rawItems: string[]): Item[] {
 
 function getCategoryFromName(name: string): string {
   const lowerName = name.toLowerCase();
+  const scores: Array<{ category: string; score: number }> = [];
 
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((keyword) => lowerName.includes(keyword))) {
-      return category;
+    let score = 0;
+
+    keywords.forEach((keyword) => {
+      if (lowerName.includes(keyword)) {
+        const wordBoundary = new RegExp(`\\b${keyword}\\b`);
+        if (wordBoundary.test(lowerName)) {
+          score += keyword.length * 2;
+        } else {
+          score += keyword.length;
+        }
+      }
+    });
+
+    if (score > 0) {
+      scores.push({ category, score });
     }
   }
 
-  return "Other";
+  return scores.length > 0
+    ? scores.sort((a, b) => b.score - a.score)[0].category
+    : "Other";
 }

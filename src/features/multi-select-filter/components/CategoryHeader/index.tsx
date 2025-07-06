@@ -1,8 +1,8 @@
-import Checkbox from "../../../../components/ui/Checkbox";
 import Typography from "../../../../components/ui/Typography";
-import Badge from "../../../../components/ui/Badge";
+import Checkbox from "../../../../components/ui/Checkbox";
 import ExpandButton from "../ExpandButton";
 import { cn } from "../../../../utils/cn";
+import { getCategoryIcon } from "../../../../utils/categoryIcons";
 import type { CategoryHeaderProps } from "./types";
 
 export default function CategoryHeader({
@@ -15,31 +15,55 @@ export default function CategoryHeader({
   className = "",
 }: CategoryHeaderProps) {
   return (
-    <div className={cn("p-3 flex items-center justify-between", className)}>
-      <div className="flex items-center space-x-3 flex-1">
+    <div
+      className={cn(
+        "flex items-center justify-between px-3 py-2 cursor-pointer select-none hover:bg-slate-800/70 rounded-t-lg transition-colors group",
+        className
+      )}
+      onClick={onToggle}
+      tabIndex={0}
+      role="button"
+      aria-expanded={isExpanded}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onToggle();
+        }
+      }}
+    >
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <Checkbox
           checked={selectionState === "all"}
           indeterminate={selectionState === "partial"}
-          onChange={onSelectionChange}
-          className="text-blue-400"
-          aria-label={`Select all items in ${category}`}
+          onChange={(e) => {
+            e.stopPropagation();
+            onSelectionChange();
+          }}
+          className="shrink-0"
+          tabIndex={-1}
         />
-        <Typography variant="label" className="text-white font-medium">
+        {getCategoryIcon(category)}
+        <Typography
+          variant="body"
+          as="span"
+          className="font-semibold text-white truncate"
+        >
           {category}
         </Typography>
-        <Badge variant="secondary" size="small">
+        <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-200 font-medium">
           {itemCount}
-        </Badge>
+        </span>
       </div>
       <ExpandButton
         isExpanded={isExpanded}
-        onClick={onToggle}
-        aria-label={`${
-          isExpanded ? "Collapse" : "Expand"
-        } ${category} category`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className="ml-2 group-hover:border-white"
+        tabIndex={-1}
       />
     </div>
   );
 }
 
-export type { CategoryHeaderProps, SelectionState } from "./types";
+export type { CategoryHeaderProps } from "./types";
