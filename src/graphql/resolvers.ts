@@ -1,30 +1,35 @@
 import itemsData from "../assets/items.json";
 import { transformItemsData } from "../utils/dataTransform";
+import { SearchServiceFactory } from "../services/SearchService";
+import { SEARCH_MAPPINGS } from "../constants/categories";
 import type { Item } from "../types/graphql";
 
 const transformedItems: Item[] = transformItemsData(itemsData.data);
+const searchService = SearchServiceFactory.create(SEARCH_MAPPINGS);
 
 export const resolvers = {
   Query: {
     items: (): Item[] => {
-      console.log(`Fetching ${transformedItems.length} items`);
       return transformedItems;
     },
 
     searchItems: (_: unknown, { query }: { query?: string }): Item[] => {
-      if (!query) {
+      try {
+        const searchResult = searchService.search(
+          transformedItems,
+          query || ""
+        );
+
+        if (!searchResult.success) {
+          console.error("Search error:", searchResult.error);
+          return transformedItems;
+        }
+
+        return searchResult.items;
+      } catch (error) {
+        console.error("Search error:", error);
         return transformedItems;
       }
-
-      const searchTerm = query.toLowerCase();
-      const filtered = transformedItems.filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchTerm) ||
-          item.category?.toLowerCase().includes(searchTerm)
-      );
-
-      console.log(`Search for "${query}": ${filtered.length} results`);
-      return filtered;
     },
   },
 };

@@ -1,10 +1,5 @@
 import { useState, useCallback } from "react";
 
-/**
- * Custom hook for managing multi-select functionality
- * @param initialSelected - Initial selected items
- * @returns Object with selected items and selection actions
- */
 export function useMultiSelect<T>(
   initialSelected: T[] = [],
   compareBy: (item: T) => string | number = (item) => JSON.stringify(item)

@@ -47,7 +47,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   </MockedProvider>
 );
 
-describe("useItemsData", () => {
+describe("useItemsData hook", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -56,57 +56,110 @@ describe("useItemsData", () => {
     vi.useRealTimers();
   });
 
-  it("loads and groups items by category", async () => {
-    const { result } = renderHook(() => useItemsData(), { wrapper });
+  describe("When user wants to browse all available items", () => {
+    it("provides organized data for easy browsing", async () => {
+      const { result } = renderHook(() => useItemsData(), { wrapper });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.items).toEqual(mockItems);
+      expect(result.current.categories).toEqual(["Books", "Games", "Music"]);
+      expect(result.current.itemsByCategory).toEqual({
+        Books: [
+          { id: "1", name: "Book A", category: "Books" },
+          { id: "2", name: "Book B", category: "Books" },
+        ],
+        Music: [{ id: "3", name: "Music Album", category: "Music" }],
+        Games: [{ id: "4", name: "Game X", category: "Games" }],
+      });
     });
 
-    expect(result.current.items).toEqual(mockItems);
-    expect(result.current.categories).toEqual(["Books", "Games", "Music"]);
-    expect(result.current.itemsByCategory).toEqual({
-      Books: [
-        { id: "1", name: "Book A", category: "Books" },
-        { id: "2", name: "Book B", category: "Books" },
-      ],
-      Music: [{ id: "3", name: "Music Album", category: "Music" }],
-      Games: [{ id: "4", name: "Game X", category: "Games" }],
-    });
-  });
+    it("works reliably without search input", async () => {
+      const { result } = renderHook(() => useItemsData({ searchQuery: "" }), {
+        wrapper,
+      });
 
-  it("handles search with debouncing", async () => {
-    const { result, rerender } = renderHook(
-      ({ searchQuery }) => useItemsData({ searchQuery }),
-      { wrapper, initialProps: { searchQuery: "" } }
-    );
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    rerender({ searchQuery: "book" });
-
-    expect(result.current.isSearching).toBe(false);
-
-    vi.advanceTimersByTime(300);
-
-    await waitFor(() => {
-      expect(result.current.isSearching).toBe(true);
+      expect(result.current.isSearching).toBe(false);
+      expect(result.current.searchResults).toEqual([]);
+      expect(result.current.items).toEqual(mockItems);
     });
   });
 
-  it("works without search query", async () => {
-    const { result } = renderHook(() => useItemsData({ searchQuery: "" }), {
-      wrapper,
+  describe("When user searches for specific items", () => {
+    it("waits for user to stop typing before searching", async () => {
+      const { result, rerender } = renderHook(
+        ({ searchQuery }) => useItemsData({ searchQuery }),
+        { wrapper, initialProps: { searchQuery: "" } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      rerender({ searchQuery: "book" });
+
+      expect(result.current.isSearching).toBe(false);
+
+      vi.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isSearching).toBe(true);
+      });
     });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+    it("provides relevant search results", async () => {
+      const { result } = renderHook(
+        () => useItemsData({ searchQuery: "book" }),
+        { wrapper }
+      );
+
+      vi.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isSearching).toBe(true);
+        expect(result.current.searchResults).toEqual(mockSearchResults);
+      });
+    });
+  });
+
+  describe("When user expects responsive interface", () => {
+    it("shows loading state while data loads", () => {
+      const { result } = renderHook(() => useItemsData(), { wrapper });
+
+      expect(result.current.loading).toBe(true);
+      expect(result.current.items).toEqual([]);
     });
 
-    expect(result.current.isSearching).toBe(false);
-    expect(result.current.searchResults).toEqual([]);
-    expect(result.current.items).toEqual(mockItems);
+    it("provides error state when data fails to load", async () => {
+      const errorMocks = [
+        {
+          request: {
+            query: GET_ITEMS,
+          },
+          error: new Error("Network error"),
+        },
+      ];
+
+      const errorWrapper = ({ children }: { children: ReactNode }) => (
+        <MockedProvider mocks={errorMocks} addTypename={false}>
+          {children}
+        </MockedProvider>
+      );
+
+      const { result } = renderHook(() => useItemsData(), {
+        wrapper: errorWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeTruthy();
+        expect(result.current.loading).toBe(false);
+      });
+    });
   });
 });

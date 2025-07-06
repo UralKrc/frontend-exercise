@@ -9,7 +9,7 @@ export const typeDefs = gql`
 
   type Query {
     items: [Item]
-    searchItems(query: String!): [Item]
+    searchItems(query: String): [Item]
   }
 `;
 

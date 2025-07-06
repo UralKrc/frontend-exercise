@@ -2,7 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useDebounce } from "../useDebounce";
 
-describe("useDebounce", () => {
+describe("useDebounce hook", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -11,50 +11,63 @@ describe("useDebounce", () => {
     vi.useRealTimers();
   });
 
-  it("returns initial value immediately", () => {
-    const { result } = renderHook(() => useDebounce("initial", 500));
+  describe("When user types rapidly", () => {
+    it("provides immediate access to initial value", () => {
+      const { result } = renderHook(() => useDebounce("initial search", 500));
 
-    expect(result.current).toBe("initial");
-  });
-
-  it("delays value update by specified delay", () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: "initial", delay: 500 } }
-    );
-
-    // Change the value
-    rerender({ value: "updated", delay: 500 });
-
-    // Should still be initial value before delay
-    expect(result.current).toBe("initial");
-
-    // Fast forward time
-    act(() => {
-      vi.advanceTimersByTime(500);
+      expect(result.current).toBe("initial search");
     });
 
-    // Should now be updated value
-    expect(result.current).toBe("updated");
-  });
+    it("waits for user to stop typing before updating", () => {
+      const { result, rerender } = renderHook(
+        ({ value, delay }) => useDebounce(value, delay),
+        { initialProps: { value: "initial", delay: 500 } }
+      );
 
-  it("cancels previous timeout when value changes rapidly", () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: "initial", delay: 500 } }
-    );
+      rerender({ value: "user is typing", delay: 500 });
 
-    // Change value multiple times rapidly
-    rerender({ value: "update1", delay: 500 });
-    rerender({ value: "update2", delay: 500 });
-    rerender({ value: "final", delay: 500 });
+      expect(result.current).toBe("initial");
 
-    // Fast forward time
-    act(() => {
-      vi.advanceTimersByTime(500);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(result.current).toBe("user is typing");
     });
 
-    // Should only have the final value, not intermediate ones
-    expect(result.current).toBe("final");
+    it("ignores intermediate values when user types quickly", () => {
+      const { result, rerender } = renderHook(
+        ({ value, delay }) => useDebounce(value, delay),
+        { initialProps: { value: "initial", delay: 500 } }
+      );
+
+      rerender({ value: "h", delay: 500 });
+      rerender({ value: "ha", delay: 500 });
+      rerender({ value: "har", delay: 500 });
+      rerender({ value: "harry potter", delay: 500 });
+
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(result.current).toBe("harry potter");
+    });
+  });
+
+  describe("When user expects responsive search", () => {
+    it("updates immediately when delay is zero", () => {
+      const { result, rerender } = renderHook(
+        ({ value, delay }) => useDebounce(value, delay),
+        { initialProps: { value: "initial", delay: 0 } }
+      );
+
+      rerender({ value: "instant update", delay: 0 });
+
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+
+      expect(result.current).toBe("instant update");
+    });
   });
 });

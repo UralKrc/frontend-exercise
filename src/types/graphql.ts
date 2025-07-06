@@ -7,3 +7,7 @@ export interface Item {
 export interface GetItemsResponse {
   items: Item[];
 }
+
+export interface SearchItemsResponse {
+  searchItems: Item[];
+}
