@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { MockedProvider } from "@apollo/client/testing";
 import type { ReactNode } from "react";
@@ -35,7 +35,7 @@ const mocks = [
     },
     result: {
       data: {
-        items: mockSearchResults,
+        searchItems: mockSearchResults,
       },
     },
   },
@@ -48,14 +48,6 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe("useItemsData hook", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   describe("When user wants to browse all available items", () => {
     it("provides organized data for easy browsing", async () => {
       const { result } = renderHook(() => useItemsData(), { wrapper });
@@ -92,7 +84,17 @@ describe("useItemsData hook", () => {
   });
 
   describe("When user searches for specific items", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("waits for user to stop typing before searching", async () => {
+      vi.useRealTimers();
+
       const { result, rerender } = renderHook(
         ({ searchQuery }) => useItemsData({ searchQuery }),
         { wrapper, initialProps: { searchQuery: "" } }
@@ -102,11 +104,17 @@ describe("useItemsData hook", () => {
         expect(result.current.loading).toBe(false);
       });
 
+      vi.useFakeTimers();
+
       rerender({ searchQuery: "book" });
 
       expect(result.current.isSearching).toBe(false);
 
-      vi.advanceTimersByTime(300);
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      vi.useRealTimers();
 
       await waitFor(() => {
         expect(result.current.isSearching).toBe(true);
@@ -114,12 +122,23 @@ describe("useItemsData hook", () => {
     });
 
     it("provides relevant search results", async () => {
+      vi.useRealTimers();
+
       const { result } = renderHook(
         () => useItemsData({ searchQuery: "book" }),
         { wrapper }
       );
 
-      vi.advanceTimersByTime(300);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      vi.useFakeTimers();
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      
+      vi.useRealTimers();
 
       await waitFor(() => {
         expect(result.current.isSearching).toBe(true);

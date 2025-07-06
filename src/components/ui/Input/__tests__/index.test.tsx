@@ -2,36 +2,41 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Input from "../.";
 
-describe("Input", () => {
-  it("calls onChange handler when typed in", () => {
-    const handleChange = vi.fn();
-    render(<Input onChange={handleChange} />);
+describe("Input component", () => {
+  describe("When user enters text", () => {
+    it("accepts and displays user input", () => {
+      const handleChange = vi.fn();
+      render(<Input onChange={handleChange} />);
 
-    fireEvent.change(screen.getByRole("textbox"), {
-      target: { value: "test" },
-    });
-
-    expect(handleChange).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not call onChange when disabled", () => {
-    const handleChange = vi.fn();
-    render(<Input disabled onChange={handleChange} />);
-
-    fireEvent.change(screen.getByRole("textbox"), {
-      target: { value: "test" },
-    });
-
-    expect(handleChange).not.toHaveBeenCalled();
-  });
-
-  it("works without onChange handler", () => {
-    render(<Input />);
-
-    expect(() => {
       fireEvent.change(screen.getByRole("textbox"), {
-        target: { value: "test" },
+        target: { value: "user input" },
       });
-    }).not.toThrow();
+
+      expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(screen.getByDisplayValue("user input")).toBeInTheDocument();
+    });
+
+    it("prevents input when disabled", () => {
+      const handleChange = vi.fn();
+      render(<Input disabled onChange={handleChange} />);
+
+      const input = screen.getByRole("textbox");
+      expect(input).toBeDisabled();
+
+      fireEvent.change(input, {
+        target: { value: "should not work" },
+      });
+
+      expect(handleChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("works reliably without change handler", () => {
+      expect(() => {
+        render(<Input />);
+        fireEvent.change(screen.getByRole("textbox"), {
+          target: { value: "test input" },
+        });
+      }).not.toThrow();
+    });
   });
 });

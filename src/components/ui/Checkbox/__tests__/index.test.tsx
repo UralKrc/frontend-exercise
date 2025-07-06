@@ -2,31 +2,64 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Checkbox from "../.";
 
-describe("Checkbox", () => {
-  it("calls onChange handler when clicked", () => {
-    const handleChange = vi.fn();
-    render(<Checkbox onChange={handleChange} />);
+describe("Checkbox component", () => {
+  describe("When user wants to make selections", () => {
+    it("allows checking and unchecking", () => {
+      const handleChange = vi.fn();
+      render(<Checkbox onChange={handleChange} />);
 
-    fireEvent.click(screen.getByRole("checkbox"));
+      const checkbox = screen.getByRole("checkbox");
 
-    expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(checkbox).not.toBeChecked();
+
+      fireEvent.click(checkbox);
+      expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(handleChange).toHaveBeenCalledWith(expect.any(Object));
+
+      fireEvent.click(checkbox);
+      expect(handleChange).toHaveBeenCalledTimes(2);
+    });
+
+    it("shows current selection state clearly", () => {
+      const { rerender } = render(
+        <Checkbox checked={true} onChange={() => {}} />
+      );
+      const checkbox = screen.getByRole("checkbox");
+      expect(checkbox).toBeChecked();
+
+      rerender(<Checkbox checked={false} onChange={() => {}} />);
+      expect(checkbox).not.toBeChecked();
+    });
+
+    it("prevents interaction when disabled", () => {
+      const handleChange = vi.fn();
+      render(<Checkbox disabled onChange={handleChange} />);
+
+      const checkbox = screen.getByRole("checkbox");
+      expect(checkbox).toBeDisabled();
+
+      fireEvent.click(checkbox);
+      expect(handleChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("works reliably without change handler", () => {
+      expect(() => {
+        render(<Checkbox />);
+        fireEvent.click(screen.getByRole("checkbox"));
+      }).not.toThrow();
+    });
   });
 
-  it("does not call onChange when disabled", () => {
-    const handleChange = vi.fn();
-    render(<Checkbox disabled onChange={handleChange} />);
+  describe("When user needs accessible form input", () => {
+    it("provides proper labeling", () => {
+      render(<Checkbox aria-label="Select all items" />);
+      expect(screen.getByLabelText("Select all items")).toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByRole("checkbox"));
-
-    expect(handleChange).not.toHaveBeenCalled();
-  });
-
-  it("works without onChange handler", () => {
-    // Should not crash when clicked without onChange
-    render(<Checkbox />);
-
-    expect(() => {
-      fireEvent.click(screen.getByRole("checkbox"));
-    }).not.toThrow();
+    it("supports indeterminate state for partial selections", () => {
+      render(<Checkbox indeterminate={true} onChange={() => {}} />);
+      const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
+      expect(checkbox.indeterminate).toBe(true);
+    });
   });
 });

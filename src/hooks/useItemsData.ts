@@ -50,7 +50,7 @@ export function useItemsData({
   const searchResults = useMemo(() => {
     return searchData?.searchItems || [];
   }, [searchData?.searchItems]);
-  const loading = allItemsLoading || (shouldSearch && searchLoading);
+  const loading = allItemsLoading;
   const error = allItemsError || searchError;
 
   const categories = useMemo(() => {

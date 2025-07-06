@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:storybook": "vitest --config vitest.storybook.config.ts",
+    "test:storybook:run": "vitest run --config vitest.storybook.config.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

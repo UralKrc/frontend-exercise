@@ -1,9 +1,17 @@
 import type { Item } from "../types/graphql";
+import { CATEGORY_KEYWORDS } from "../constants/categories";
 
 function decodeHtmlEntities(text: string): string {
-  const textarea = document.createElement("textarea");
-  textarea.innerHTML = text;
-  return textarea.value;
+  return text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, "/")
+    .replace(/&#x60;/g, "`");
 }
 
 export function transformItemsData(rawItems: string[]): Item[] {
@@ -14,53 +22,13 @@ export function transformItemsData(rawItems: string[]): Item[] {
   }));
 }
 
-function getCategoryFromName(name: string): string | undefined {
+function getCategoryFromName(name: string): string {
   const lowerName = name.toLowerCase();
 
-  if (lowerName.includes("boek") || lowerName.includes("literatuur")) {
-    return "Books";
-  }
-  if (
-    lowerName.includes("muziek") ||
-    lowerName.includes("cd") ||
-    lowerName.includes("lp")
-  ) {
-    return "Music";
-  }
-  if (
-    lowerName.includes("film") ||
-    lowerName.includes("dvd") ||
-    lowerName.includes("blu-ray")
-  ) {
-    return "Movies";
-  }
-  if (
-    lowerName.includes("game") ||
-    lowerName.includes("playstation") ||
-    lowerName.includes("xbox")
-  ) {
-    return "Games";
-  }
-  if (
-    lowerName.includes("computer") ||
-    lowerName.includes("laptop") ||
-    lowerName.includes("software")
-  ) {
-    return "Technology";
-  }
-  if (
-    lowerName.includes("speelgoed") ||
-    lowerName.includes("baby") ||
-    lowerName.includes("kinderen")
-  ) {
-    return "Kids & Toys";
-  }
-  if (
-    lowerName.includes("verzorging") ||
-    lowerName.includes("parfum") ||
-    lowerName.includes("cosmetica")
-  ) {
-    return "Beauty & Care";
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((keyword) => lowerName.includes(keyword))) {
+      return category;
+    }
   }
 
   return "Other";

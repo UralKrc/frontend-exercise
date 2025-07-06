@@ -2,44 +2,38 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import path from "path";
-import { fileURLToPath } from "url";
-import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   test: {
-    projects: [
-      {
-        extends: true,
-        plugins: [
-          // The plugin will run tests for the stories defined in your Storybook config
-          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-          storybookTest({
-            configDir: path.join(__dirname, ".storybook"),
-          }),
-        ],
-        test: {
-          name: "storybook",
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: "playwright",
-            instances: [
-              {
-                browser: "chromium",
-              },
-            ],
-          },
-          setupFiles: [".storybook/vitest.setup.ts"],
-        },
-      },
-    ],
     environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
+    setupFiles: ["./vitest.setup.ts"],
     globals: true,
+    css: true,
+    // Include test files
+    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    // Exclude storybook files from regular tests
+    exclude: [
+      "node_modules",
+      "dist",
+      ".storybook",
+      "**/*.stories.{js,jsx,ts,tsx}",
+      "**/*.story.{js,jsx,ts,tsx}",
+    ],
+    // Coverage configuration
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      exclude: [
+        "node_modules/",
+        "src/test/",
+        "**/*.d.ts",
+        "**/*.stories.{js,jsx,ts,tsx}",
+        "**/*.story.{js,jsx,ts,tsx}",
+        "src/main.tsx",
+        "src/vite-env.d.ts",
+        "vite.config.ts",
+      ],
+    },
   },
 });

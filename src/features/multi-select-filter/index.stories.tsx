@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MockedProvider } from "@apollo/client/testing";
 import { GET_ITEMS } from "../../graphql/schema";
-import MultiSelectFilter from "./index";
+import MultiSelectFilter from ".";
 
 const mockItems = [
   { id: "1", name: "Literatuur & Romans", category: "Books" },

@@ -1,4 +1,4 @@
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode, ElementType } from "react";
 
 export interface TypographyProps extends HTMLAttributes<HTMLElement> {
   variant?:
@@ -14,6 +14,6 @@ export interface TypographyProps extends HTMLAttributes<HTMLElement> {
   size?: "small" | "medium" | "large";
   weight?: "normal" | "medium" | "semibold" | "bold";
   color?: "primary" | "secondary" | "muted" | "error" | "success";
-  as?: keyof JSX.IntrinsicElements;
-  children: React.ReactNode;
+  as?: ElementType;
+  children: ReactNode;
 }
